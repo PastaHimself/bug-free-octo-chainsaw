@@ -21,6 +21,7 @@ RUN apt-get update \
         libdrm2 \
         libgbm1 \
         libgtk-3-0 \
+        libnss-wrapper \
         libnss3 \
         libsecret-1-0 \
         libx11-xcb1 \
