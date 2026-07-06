@@ -1,0 +1,14 @@
+name: Publish to GHCR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and push Docker image
+        run: docker build -t ghcr.io/${{ github.repository }}:latest ./docker

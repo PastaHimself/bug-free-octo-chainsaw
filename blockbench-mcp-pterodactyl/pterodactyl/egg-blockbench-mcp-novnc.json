@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2026-07-06T00:00:00+00:00",
+  "name": "Blockbench MCP NoVNC",
+  "author": "PastaHimself",
+  "description": "Blockbench MCP with NoVNC support",
+  "features": null,
+  "docker_images": {
+    "ghcr.io/pastahimself/blockbench-mcp:latest": "ghcr.io/pastahimself/blockbench-mcp:latest"
+  },
+  "file_denylist": [],
+  "startup": "bash /app/start-blockbench-mcp.sh",
+  "config": {
+    "files": "{}",
+    "startup": "{\"done\":\"Ready\"}",
+    "logs": "{}",
+    "stop": "^C"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\necho 'Installing Blockbench MCP...'",
+      "container": "ubuntu:22.04",
+      "entry": "bash"
+    }
+  },
+  "variables": []
+}
