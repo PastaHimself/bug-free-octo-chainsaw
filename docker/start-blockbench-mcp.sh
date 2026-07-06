@@ -12,6 +12,38 @@ export MCP_ENDPOINT="${MCP_ENDPOINT:-/bb-mcp}"
 VNC_PASSWORD_VALUE="${VNC_PASSWORD:-McpVnc26}"
 unset VNC_PASSWORD
 
+setup_runtime_identity() {
+  local runtime_uid runtime_gid nss_wrapper
+  runtime_uid="$(id -u)"
+  runtime_gid="$(id -g)"
+
+  mkdir -p "$HOME"
+
+  if getent passwd "$runtime_uid" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  nss_wrapper="$(find /usr -name libnss_wrapper.so -print -quit 2>/dev/null || true)"
+  if [ -z "$nss_wrapper" ]; then
+    echo "WARNING: current UID ${runtime_uid} is not in /etc/passwd and libnss_wrapper was not found. DBus/Electron may fail."
+    return 0
+  fi
+
+  cat > "$HOME/.container-passwd" <<EOF_PASSWD
+container:x:${runtime_uid}:${runtime_gid}:Pterodactyl Container:${HOME}:/bin/bash
+EOF_PASSWD
+  cat > "$HOME/.container-group" <<EOF_GROUP
+container:x:${runtime_gid}:
+EOF_GROUP
+
+  export NSS_WRAPPER_PASSWD="$HOME/.container-passwd"
+  export NSS_WRAPPER_GROUP="$HOME/.container-group"
+  export LD_PRELOAD="${LD_PRELOAD:+${LD_PRELOAD}:}${nss_wrapper}"
+  echo "Configured libnss_wrapper for runtime UID ${runtime_uid}."
+}
+
+setup_runtime_identity
+
 if [ "${#VNC_PASSWORD_VALUE}" -ne 8 ]; then
   echo "ERROR: VNC_PASSWORD must be exactly 8 characters because standard VNC authentication only uses 8 characters."
   exit 1
@@ -144,11 +176,19 @@ BLOCKBENCH_FLAGS=(
   --disable-features=UseOzonePlatform
 )
 
+launch_blockbench() {
+  if command -v dbus-run-session >/dev/null 2>&1; then
+    dbus-run-session -- blockbench "${BLOCKBENCH_FLAGS[@]}"
+    return $?
+  fi
+
+  blockbench "${BLOCKBENCH_FLAGS[@]}"
+}
+
 while true; do
   echo "Starting Blockbench at $(date -Iseconds)" >>"$HOME/logs/blockbench.log"
-  if command -v dbus-run-session >/dev/null 2>&1; then
-    dbus-run-session -- blockbench "${BLOCKBENCH_FLAGS[@]}" >>"$HOME/logs/blockbench.log" 2>&1 || true
-  else
+  if ! launch_blockbench >>"$HOME/logs/blockbench.log" 2>&1; then
+    echo "Blockbench launch through dbus-run-session failed; retrying once without dbus-run-session." >>"$HOME/logs/blockbench.log"
     blockbench "${BLOCKBENCH_FLAGS[@]}" >>"$HOME/logs/blockbench.log" 2>&1 || true
   fi
   echo "Blockbench exited at $(date -Iseconds); restarting in 5 seconds." | tee -a "$HOME/logs/blockbench.log"
