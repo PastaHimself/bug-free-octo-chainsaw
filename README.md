@@ -154,4 +154,6 @@ client-configs/claude_desktop_config.json
 
 If noVNC opens to a black Fluxbox desktop but Blockbench does not appear, check `logs/blockbench.log` from the Pterodactyl Files tab. The startup script launches Blockbench with Electron container flags (`--no-sandbox`, `--disable-gpu`, `--disable-dev-shm-usage`, `--disable-software-rasterizer`, and `--disable-features=UseOzonePlatform`) and appends each crash/restart to that log.
 
+Pterodactyl can run the container with a runtime UID that is not listed in `/etc/passwd`. This breaks DBus with errors like `Could not get password database information for UID of current process`. The Docker image includes `libnss-wrapper`, and the startup script generates a runtime passwd/group mapping before DBus and Blockbench launch.
+
 The Xvfb readiness check uses `/tmp/.X11-unix/X1`; this is intentional because Xvfb commonly exposes a Unix socket instead of opening TCP port `127.0.0.1:6001` inside containers.
