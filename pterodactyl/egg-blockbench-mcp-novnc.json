@@ -1,0 +1,82 @@
+{
+    "_comment": "Pterodactyl egg for running Blockbench desktop with the blockbench-mcp-plugin through noVNC. Requires a Docker image built from the included docker/Dockerfile. Pterodactyl readiness means noVNC is ready; MCP is ready only after the plugin is loaded inside Blockbench.",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2026-07-06T14:45:00+00:00",
+    "name": "Blockbench MCP noVNC",
+    "author": "PastaHimself@users.noreply.github.com",
+    "description": "Runs Blockbench desktop in a noVNC session and provides the Blockbench MCP plugin file. The MCP endpoint only exists after the plugin is loaded in Blockbench. Default manual MCP settings: port 3000, endpoint /bb-mcp.",
+    "features": null,
+    "docker_images": {
+        "Blockbench MCP noVNC GHCR": "ghcr.io/pastahimself/blockbench-mcp-pterodactyl:latest"
+    },
+    "file_denylist": [],
+    "startup": "NOVNC_PORT={{SERVER_PORT}} /usr/local/bin/start-blockbench-mcp.sh",
+    "config": {
+        "files": "{}",
+        "startup": "{\n  \"done\": \"noVNC ready\"\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!/bin/bash\nset -euo pipefail\nmkdir -p /mnt/server/mcp-plugin /mnt/server/.config/Blockbench /mnt/server/logs\ncurl -fsSL https://jasonjgardner.github.io/blockbench-mcp-plugin/mcp.js -o /mnt/server/mcp-plugin/mcp.js\ncat > /mnt/server/START_HERE.txt <<'TXT'\nBlockbench MCP noVNC server installed.\n\nFirst boot:\n1. Open the server web/noVNC allocation in your browser.\n2. In Blockbench, use File > Plugins > Load Plugin from File.\n3. Select /home/container/mcp-plugin/mcp.js.\n4. Allow network access if Blockbench asks.\n5. Check Settings > General > MCP Server Port = 3000 and MCP Server Endpoint = /bb-mcp.\n6. Pterodactyl marks the server ready when noVNC is available, not when MCP is available.\n7. MCP exists only after the plugin is loaded inside Blockbench.\n8. Connect your MCP client to http://localhost:3000/bb-mcp from inside the same VPS/container network, or expose the MCP allocation only through VPN/Tailscale/SSH tunnel/authenticated proxy.\nTXT\nchmod -R u+rwX /mnt/server",
+            "container": "ghcr.io/pterodactyl/installers:debian",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Expected MCP Port",
+            "description": "Expected/manual Blockbench MCP port displayed in first-run instructions. This does not automatically configure Blockbench; set the same value in Blockbench Settings > General.",
+            "env_variable": "MCP_PORT",
+            "default_value": "3000",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:1024,65535",
+            "field_type": "text"
+        },
+        {
+            "name": "Expected MCP Endpoint",
+            "description": "Expected/manual Blockbench MCP endpoint displayed in first-run instructions. This does not automatically configure Blockbench; set the same value in Blockbench Settings > General.",
+            "env_variable": "MCP_ENDPOINT",
+            "default_value": "/bb-mcp",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "VNC Password",
+            "description": "Password for VNC/noVNC access. Standard VNC authentication uses exactly 8 characters; change this and keep noVNC behind localhost/VPN/private networking. The startup script writes an x11vnc auth file without passing the password in the long-running x11vnc process arguments.",
+            "env_variable": "VNC_PASSWORD",
+            "default_value": "McpVnc26",
+            "user_viewable": false,
+            "user_editable": true,
+            "rules": "required|string|min:8|max:8",
+            "field_type": "text"
+        },
+        {
+            "name": "Display Width",
+            "description": "Virtual desktop width.",
+            "env_variable": "DISPLAY_WIDTH",
+            "default_value": "1280",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:800,3840",
+            "field_type": "text"
+        },
+        {
+            "name": "Display Height",
+            "description": "Virtual desktop height.",
+            "env_variable": "DISPLAY_HEIGHT",
+            "default_value": "720",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:600,2160",
+            "field_type": "text"
+        }
+    ]
+}
