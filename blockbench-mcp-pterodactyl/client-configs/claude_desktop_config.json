@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "blockbench-mcp": {
-      "command": "node",
-      "args": ["/app/blockbench-mcp/index.js"],
-      "env": {}
-    }
-  }
-}
