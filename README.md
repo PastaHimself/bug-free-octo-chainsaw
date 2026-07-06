@@ -152,7 +152,9 @@ client-configs/claude_desktop_config.json
 
 ### Black noVNC desktop / Blockbench restarts
 
-If noVNC opens to a black Fluxbox desktop but Blockbench does not appear, check `logs/blockbench.log` from the Pterodactyl Files tab. The startup script launches Blockbench with Electron container flags (`--no-sandbox`, `--disable-gpu`, `--disable-dev-shm-usage`, `--disable-software-rasterizer`, and `--disable-features=UseOzonePlatform`) and appends each crash/restart to that log.
+If noVNC opens to a black Fluxbox desktop but Blockbench does not appear, check `logs/blockbench.log` from the Pterodactyl Files tab. The startup script launches Blockbench with Electron container flags that support CPU-only VPS environments: `--no-sandbox`, `--disable-gpu`, `--disable-dev-shm-usage`, `--ignore-gpu-blocklist`, `--enable-unsafe-swiftshader`, `--use-gl=swiftshader`, and `--disable-features=UseOzonePlatform,Vulkan`.
+
+Do not add `--disable-software-rasterizer` for CPU-only VPS hosts. Blockbench needs software WebGL/SwiftShader when no hardware GPU is available.
 
 Pterodactyl can run the container with a runtime UID that is not listed in `/etc/passwd`. This breaks DBus with errors like `Could not get password database information for UID of current process`. The Docker image includes `libnss-wrapper`, and the startup script generates a runtime passwd/group mapping before DBus and Blockbench launch.
 

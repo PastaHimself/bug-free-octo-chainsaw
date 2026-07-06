@@ -172,8 +172,10 @@ BLOCKBENCH_FLAGS=(
   --no-sandbox
   --disable-gpu
   --disable-dev-shm-usage
-  --disable-software-rasterizer
-  --disable-features=UseOzonePlatform
+  --ignore-gpu-blocklist
+  --enable-unsafe-swiftshader
+  --use-gl=swiftshader
+  --disable-features=UseOzonePlatform,Vulkan
 )
 
 launch_blockbench() {
